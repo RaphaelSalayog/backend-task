@@ -1,46 +1,28 @@
-import type { APIGatewayProxyStructuredResultV2, Handler } from 'aws-lambda';
-import { DataTypes, Sequelize } from 'sequelize';
+import type {
+  APIGatewayProxyEventV2,
+  APIGatewayProxyStructuredResultV2,
+  Handler,
+} from "aws-lambda";
+import users from "../db/users";
 
-export const handler: Handler =
-    async (): Promise<APIGatewayProxyStructuredResultV2> => {
-        const { DB_HOST, DB_NAME, DB_USER, DB_PASSWORD } = process.env;
-        const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
-            host: DB_HOST,
-            dialect: 'mysql',
-        });
+export const handler: Handler = async (
+  event: APIGatewayProxyEventV2
+): Promise<APIGatewayProxyStructuredResultV2> => {
+  const { id = null } = event.body ? JSON.parse(event.body) : {};
 
-        sequelize.authenticate();
+  const whereClause: { id?: number } = {};
+  if (id !== null && id !== undefined) {
+    whereClause.id = id;
+  }
 
-        const users = sequelize.define(
-            'Users',
-            {
-                id: {
-                    type: DataTypes.INTEGER,
-                    primaryKey: true
-                },
-                name: {
-                    type: DataTypes.STRING,
-                },
-                address: {
-                    type: DataTypes.STRING
-                }
-            },
-            {
-                tableName: 'users_tb',
-                timestamps: false,
-            }
-        );
+  const useLists = await users.findAll({
+    where: whereClause,
+  });
 
-        const useLists = await users.findAll({
-            where: {
-                name: 'ASD',
-            },
-        });
-
-        return {
-            statusCode: 200,
-            body: JSON.stringify({
-                data: useLists,
-            }),
-        };
-    };
+  return {
+    statusCode: 200,
+    body: JSON.stringify({
+      data: useLists,
+    }),
+  };
+};

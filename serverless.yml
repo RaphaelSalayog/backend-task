@@ -1,5 +1,5 @@
 service: project-service
-frameworkVersion: '3'
+frameworkVersion: "3"
 
 provider:
   name: aws
@@ -9,7 +9,7 @@ provider:
     DB_HOST: localhost
     DB_NAME: test
     DB_USER: root
-    DB_PASSWORD: '123456'
+    DB_PASSWORD: "123456"
 
 plugins:
   - serverless-prune-versions
@@ -34,7 +34,7 @@ functions:
     events:
       - http:
           path: /view
-          method: get
+          method: post
 
   update:
     handler: src/handlers/update.handler

@@ -1,49 +1,25 @@
 import type {
-    APIGatewayProxyStructuredResultV2,
-    APIGatewayProxyEventV2,
-    Handler,
-} from 'aws-lambda';
-import { DataTypes, Sequelize } from 'sequelize';
+  APIGatewayProxyStructuredResultV2,
+  APIGatewayProxyEventV2,
+  Handler,
+} from "aws-lambda";
+import users from "../db/users";
 
 export const handler: Handler = async (
-    event: APIGatewayProxyEventV2
+  event: APIGatewayProxyEventV2
 ): Promise<APIGatewayProxyStructuredResultV2> => {
-    const { DB_HOST, DB_NAME, DB_USER, DB_PASSWORD } = process.env;
-    const { id, name } = JSON.parse(event.body);
+  const { id, name, address } = JSON.parse(event.body);
 
-    const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
-        host: DB_HOST,
-        dialect: 'mysql',
-    });
+  await users.update({ name, address }, { where: { id: id } });
 
-    sequelize.authenticate();
-
-    const users = sequelize.define(
-        'Users',
-        {
-            id: {
-                type: DataTypes.INTEGER,
-                primaryKey: true
-            },
-            name: {
-                type: DataTypes.STRING,
-            },
-            address: {
-                type: DataTypes.STRING
-            }
-        },
-        {
-            tableName: 'users_tb',
-            timestamps: false,
-        }
-    );
-
-    await users.update({ name: name }, { where: { id: id } });
-
-    return {
-        statusCode: 200,
-        body: JSON.stringify({
-            message: `name: ${name}`,
-        }),
-    };
+  return {
+    statusCode: 200,
+    body: JSON.stringify({
+      message: {
+        id,
+        name,
+        address,
+      },
+    }),
+  };
 };
